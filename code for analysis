@@ -1,0 +1,49 @@
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Step 1: Load the data
+df = pd.read_csv("tested.csv")
+
+# Step 2: Basic info
+print("Dataset Info:\n", df.info())
+print("\nMissing Values:\n", df.isnull().sum())
+
+# Step 3: Fill missing values
+df['Age'].fillna(df['Age'].median(), inplace=True)
+df['Fare'].fillna(df['Fare'].median(), inplace=True)
+df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
+
+# Step 4: Encode categorical columns
+label_enc = LabelEncoder()
+df['Sex'] = label_enc.fit_transform(df['Sex'])  # male:1, female:0
+df['Embarked'] = label_enc.fit_transform(df['Embarked'])
+
+# Step 5: Feature selection
+features = ['Pclass', 'Sex', 'Age', 'SibSp', 'Parch', 'Fare', 'Embarked']
+X = df[features]
+y = df['Survived']
+
+# Step 6: Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 7: Model training
+model = LogisticRegression(max_iter=200)
+model.fit(X_train, y_train)
+
+# Step 8: Predictions
+y_pred = model.predict(X_test)
+
+# Step 9: Evaluation
+print("Accuracy Score:", accuracy_score(y_test, y_pred))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Step 10: Visualization (optional)
+sns.countplot(data=df, x='Survived', hue='Sex')
+plt.title("Survival Count by Gender")
+plt.show()
